@@ -11,7 +11,7 @@ const CONFIG = {
   REDIRECT_URI: "https://varunkrishnan1.github.io/SpotifyWeb-Connect/",
   
   // Spotify API scopes needed for the application
-  SCOPES: "user-read-currently-playing user-read-playback-state",
+  SCOPES: "user-read-currently-playing user-read-playback-state user-read-recently-played",
   
   // Update interval in milliseconds (how often to fetch new data)
   UPDATE_INTERVAL: 1000

@@ -235,12 +235,13 @@ class SpotifyWidget {
    */
   async fetchNowPlaying() {
     try {
-      const response = await this.makeSpotifyRequest('/v1/me/player/currently-playing');
+      const response = await this.makeSpotifyRequest('/v1/me/player/currently-playing?additional_types=track,episode');
       
       // Handle different response scenarios
       if (response.status === 204) {
-        // No track currently playing
-        this.updateUI(null, false);
+        // No track currently playing - try recently played as fallback
+        console.log('🔄 Nothing playing, checking recently played...');
+        await this.fetchRecentlyPlayed();
         return;
       }
       
@@ -271,9 +272,44 @@ class SpotifyWidget {
   }
 
   /**
+   * Fetch recently played tracks as fallback when nothing is currently playing
+   */
+  async fetchRecentlyPlayed() {
+    try {
+      console.log('🕚 Fetching recently played tracks...');
+      const response = await this.makeSpotifyRequest('/v1/me/player/recently-played?limit=1');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.items && data.items.length > 0) {
+        const recentTrack = data.items[0];
+        // Create a fake "currently playing" object from recent track
+        const fakeCurrentlyPlaying = {
+          item: recentTrack.track,
+          progress_ms: 0, // No progress for recent tracks
+          is_playing: false // Not currently playing
+        };
+        
+        console.log('🕚 Showing most recently played track');
+        this.updateUI(fakeCurrentlyPlaying, false, true); // Pass true for "isRecent" flag
+      } else {
+        this.updateUI(null, false);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching recently played:', error);
+      this.updateUI(null, false);
+    }
+  }
+
+  /**
    * Update the UI with track information
    */
-  updateUI(data, isPlaying) {
+  updateUI(data, isPlaying, isRecent = false) {
     if (!data || !data.item) {
       // No track playing
       this.elements.songTitle.textContent = 'No track playing';
@@ -310,7 +346,7 @@ class SpotifyWidget {
     this.elements.timeDuration.textContent = this.msToTime(duration);
     
     // Update playback status
-    this.updatePlaybackStatus(isPlaying);
+    this.updatePlaybackStatus(isPlaying, isRecent);
     
     // Store current track for comparison
     this.currentTrack = track;
@@ -320,8 +356,12 @@ class SpotifyWidget {
   /**
    * Update playback status indicator
    */
-  updatePlaybackStatus(isPlaying) {
-    if (isPlaying) {
+  updatePlaybackStatus(isPlaying, isRecent = false) {
+    if (isRecent) {
+      this.elements.playIcon.className = 'fas fa-history me-1';
+      this.elements.statusText.textContent = 'Recently Played';
+      this.elements.progressBar.classList.remove('progress-bar-animated');
+    } else if (isPlaying) {
       this.elements.playIcon.className = 'fas fa-play me-1';
       this.elements.statusText.textContent = 'Playing';
       this.elements.progressBar.classList.add('progress-bar-animated');
