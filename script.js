@@ -76,8 +76,17 @@ class SpotifyWidget {
    * Bind event listeners
    */
   bindEvents() {
+    console.log('🔗 Binding events...');
+    
     if (this.elements.loginBtn) {
-      this.elements.loginBtn.addEventListener('click', () => this.login());
+      console.log('✅ Login button found, adding event listener');
+      this.elements.loginBtn.addEventListener('click', (e) => {
+        console.log('🔵 Login button clicked!');
+        e.preventDefault();
+        this.login();
+      });
+    } else {
+      console.warn('⚠️ Login button not found!');
     }
     
     if (this.elements.refreshBtn) {
@@ -425,9 +434,17 @@ class SpotifyWidget {
   // UI State Management Methods
 
   hideAllScreens() {
-    Object.values(this.elements).forEach(element => {
-      if (element && element.style) {
-        element.style.display = 'none';
+    // Only hide the main screen containers, not individual elements
+    const screens = [
+      this.elements.loadingScreen,
+      this.elements.loginScreen,
+      this.elements.mainWidget,
+      this.elements.errorScreen
+    ];
+    
+    screens.forEach(screen => {
+      if (screen && screen.style) {
+        screen.style.display = 'none';
       }
     });
   }
