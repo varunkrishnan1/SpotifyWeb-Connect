@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Auth Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        .error { color: #f85149; }
+        .success { color: #3fb950; }
+        .info { color: #58a6ff; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Spotify OAuth Debug Tool</h1>
+    
+    <div class="section">
+        <h3>Current URL Analysis:</h3>
+        <div id="url-analysis"></div>
+    </div>
+    
+    <div class="section">
+        <h3>Test OAuth Flow:</h3>
+        <button onclick="testLogin()">Test Login (Implicit Grant)</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="section">
+        <h3>Stored Data:</h3>
+        <div id="storage-info"></div>
+    </div>
+
+    <script>
+        const CLIENT_ID = "ecfa8a73e39141f38cd496165e63b5b7";
+        const REDIRECT_URI = "https://varunkrishnan1.github.io/SpotifyWeb-Connect/test-auth.html";
+        const SCOPES = "user-read-currently-playing user-read-playback-state user-read-recently-played";
+
+        function analyzeURL() {
+            const urlDiv = document.getElementById('url-analysis');
+            const url = window.location.href;
+            const hash = window.location.hash;
+            const search = window.location.search;
+            
+            let html = `
+                <strong>Full URL:</strong> ${url}<br>
+                <strong>Hash:</strong> ${hash || 'None'}<br>
+                <strong>Search:</strong> ${search || 'None'}<br>
+            `;
+            
+            // Check for access token in hash
+            if (hash) {
+                const hashParams = hash.substring(1).split('&').reduce((initial, item) => {
+                    const parts = item.split('=');
+                    initial[parts[0]] = decodeURIComponent(parts[1]);
+                    return initial;
+                }, {});
+                
+                html += '<br><strong>Hash Parameters:</strong><br>';
+                Object.entries(hashParams).forEach(([key, value]) => {
+                    const className = key === 'error' ? 'error' : key === 'access_token' ? 'success' : 'info';
+                    html += `<span class="${className}">- ${key}: ${value}</span><br>`;
+                });
+                
+                if (hashParams.access_token) {
+                    localStorage.setItem('spotify_access_token', hashParams.access_token);
+                    localStorage.setItem('spotify_token_expiry', Date.now() + 3600000);
+                    html += '<br><span class="success">✅ Token saved to localStorage!</span>';
+                }
+                
+                if (hashParams.error) {
+                    html += `<br><span class="error">❌ OAuth Error: ${hashParams.error}</span>`;
+                }
+            }
+            
+            // Check for code in search params
+            if (search) {
+                const searchParams = new URLSearchParams(search);
+                const code = searchParams.get('code');
+                const error = searchParams.get('error');
+                
+                if (code) {
+                    html += `<br><span class="info">📝 Auth Code: ${code.substring(0, 20)}...</span>`;
+                }
+                if (error) {
+                    html += `<br><span class="error">❌ OAuth Error: ${error}</span>`;
+                }
+            }
+            
+            urlDiv.innerHTML = html;
+        }
+        
+        function testLogin() {
+            const params = new URLSearchParams({
+                client_id: CLIENT_ID,
+                response_type: 'token',
+                redirect_uri: REDIRECT_URI,
+                scope: SCOPES,
+                show_dialog: 'true'
+            });
+
+            const loginUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
+            
+            document.getElementById('test-results').innerHTML = `
+                <div class="info">
+                    <strong>Login URL:</strong><br>
+                    <small>${loginUrl}</small><br><br>
+                    <strong>Redirecting in 3 seconds...</strong>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.location.href = loginUrl;
+            }, 3000);
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            showStorageInfo();
+            document.getElementById('test-results').innerHTML = '<span class="info">Storage cleared!</span>';
+        }
+        
+        function showStorageInfo() {
+            const storageDiv = document.getElementById('storage-info');
+            const token = localStorage.getItem('spotify_access_token');
+            const expiry = localStorage.getItem('spotify_token_expiry');
+            
+            let html = '';
+            if (token) {
+                const isExpired = expiry && Date.now() > parseInt(expiry);
+                html += `<span class="success">Access Token: ${token.substring(0, 20)}...</span><br>`;
+                html += `<span class="${isExpired ? 'error' : 'info'}">Expires: ${new Date(parseInt(expiry)).toLocaleString()}</span><br>`;
+                html += `<span class="${isExpired ? 'error' : 'success'}">Status: ${isExpired ? 'Expired' : 'Valid'}</span>`;
+            } else {
+                html = '<span class="error">No token stored</span>';
+            }
+            
+            storageDiv.innerHTML = html;
+        }
+        
+        // Run on load
+        analyzeURL();
+        showStorageInfo();
+        
+        // Clear hash after reading it
+        if (window.location.hash) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+</body>
+</html>

@@ -46,28 +46,19 @@ class SpotifyWidget {
   /**
    * Initialize the widget
    */
-  async init() {
+  init() {
     console.log('🎵 Initializing Spotify Widget...');
     
     // Bind events
     this.bindEvents();
     
-    // Check for authorization code first
-    const authCode = this.getAuthCodeFromUrl();
+    // Check for access token in URL hash (Implicit Grant Flow)
+    const token = this.getTokenFromUrl();
     
-    if (authCode) {
-      console.log('🔄 Exchanging authorization code for token...');
-      try {
-        this.showLoading();
-        const token = await this.exchangeCodeForToken(authCode);
-        this.accessToken = token;
-        await this.startWidget();
-        return;
-      } catch (error) {
-        console.error('❌ Token exchange failed:', error);
-        this.showError('Failed to authenticate with Spotify');
-        return;
-      }
+    if (token) {
+      this.accessToken = token;
+      this.startWidget();
+      return;
     }
     
     // Check if we have a stored token
@@ -76,7 +67,7 @@ class SpotifyWidget {
     
     if (storedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
       this.accessToken = storedToken;
-      await this.startWidget();
+      this.startWidget();
     } else {
       this.showLogin();
     }
@@ -168,23 +159,35 @@ class SpotifyWidget {
   }
 
   /**
-   * Extract authorization code from URL (OAuth Authorization Code Flow)
+   * Extract access token from URL hash (OAuth Implicit Grant Flow)
    */
-  getAuthCodeFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const error = urlParams.get('error');
+  getTokenFromUrl() {
+    const hash = window.location.hash
+      .substring(1)
+      .split('&')
+      .reduce((initial, item) => {
+        const parts = item.split('=');
+        initial[parts[0]] = decodeURIComponent(parts[1]);
+        return initial;
+      }, {});
     
-    if (error) {
-      console.error('❌ OAuth error:', error);
+    // Clear the hash from URL
+    window.location.hash = '';
+    
+    if (hash.error) {
+      console.error('❌ OAuth error:', hash.error);
+      this.showError(`Authentication failed: ${hash.error}`);
       return null;
     }
     
-    if (code) {
-      // Clear the code from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      console.log('✅ Authorization code acquired');
-      return code;
+    if (hash.access_token) {
+      // Store token with expiry (default 1 hour)
+      const expiryTime = Date.now() + (hash.expires_in ? parseInt(hash.expires_in) * 1000 : 3600000);
+      localStorage.setItem('spotify_access_token', hash.access_token);
+      localStorage.setItem('spotify_token_expiry', expiryTime.toString());
+      
+      console.log('✅ Access token acquired and stored');
+      return hash.access_token;
     }
     
     return null;
@@ -237,20 +240,16 @@ class SpotifyWidget {
   }
 
   /**
-   * Redirect to Spotify login using Authorization Code Flow with PKCE
+   * Redirect to Spotify login using Implicit Grant Flow
    */
-  async login() {
+  login() {
     console.log('🔐 Redirecting to Spotify login...');
-    
-    const { codeChallenge } = this.generatePKCE();
     
     const params = new URLSearchParams({
       client_id: this.config.CLIENT_ID,
-      response_type: 'code',
+      response_type: 'token',
       redirect_uri: this.config.REDIRECT_URI,
       scope: this.config.SCOPES,
-      code_challenge_method: 'S256',
-      code_challenge: codeChallenge,
       show_dialog: 'true'
     });
 
@@ -591,6 +590,12 @@ class SpotifyWidget {
     }
     
     console.error('❌ Error:', message);
+    
+    // Add more detailed error info for debugging
+    console.log('🔍 Debug info:');
+    console.log('- Current URL:', window.location.href);
+    console.log('- Access Token:', this.accessToken ? 'Present' : 'Missing');
+    console.log('- Config:', this.config);
   }
 }
 
