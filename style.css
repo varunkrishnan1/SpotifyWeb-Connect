@@ -1,0 +1,12 @@
+
+body {
+  font-family: Arial, sans-serif;
+}
+.card {
+  border-radius: 20px;
+}
+.progress {
+  height: 8px;
+  border-radius: 5px;
+  background-color: #333;
+}
