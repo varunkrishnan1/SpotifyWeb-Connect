@@ -1,6 +1,6 @@
 // Replace with your Spotify credentials
 const clientId = "ecfa8a73e39141f38cd496165e63b5b7";
-const redirectUri = "http://localhost:5500"; // Adjust if hosted
+const redirectUri = "https://varunkrishnan1.github.io/SpotifyWeb-Connect/"; // GitHub Pages URL
 const scopes = "user-read-currently-playing user-read-playback-state";
 
 let accessToken = null;

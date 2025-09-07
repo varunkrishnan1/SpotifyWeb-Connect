@@ -20,7 +20,9 @@ A real-time Spotify "Now Playing" web application that displays your currently p
 
 ## 🚀 Live Demo
 
-Visit the live application: [SpotifyWeb-Connect](https://github.com/varunkrishnan1/SpotifyWeb-Connect)
+🌐 **Live Application:** [https://varunkrishnan1.github.io/SpotifyWeb-Connect/](https://varunkrishnan1.github.io/SpotifyWeb-Connect/)
+
+📁 **Repository:** [https://github.com/varunkrishnan1/SpotifyWeb-Connect](https://github.com/varunkrishnan1/SpotifyWeb-Connect)
 
 ## 📸 Screenshot
 
@@ -44,7 +46,7 @@ The application displays a clean, card-based interface showing:
    - **App Name**: SpotifyWeb-Connect
    - **App Description**: Web application for displaying now playing
 4. Note down your **Client ID**
-5. Add redirect URI: `http://localhost:5500` (or your hosting URL)
+5. Add redirect URI: `https://varunkrishnan1.github.io/SpotifyWeb-Connect/`
 
 ### 2. Configuration
 1. Clone this repository:
@@ -56,7 +58,7 @@ The application displays a clean, card-based interface showing:
 2. Open `script.js` and update the configuration:
    ```javascript
    const clientId = "YOUR_SPOTIFY_CLIENT_ID";
-   const redirectUri = "http://localhost:5500"; // Update if hosting elsewhere
+   const redirectUri = "https://varunkrishnan1.github.io/SpotifyWeb-Connect/"; // GitHub Pages URL
    ```
 
 ### 3. Running the Application
