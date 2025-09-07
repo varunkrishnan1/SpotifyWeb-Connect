@@ -8,7 +8,9 @@ const CONFIG = {
   // Redirect URI - must match exactly what's set in your Spotify app settings
   // For local development: "http://localhost:3000" or "http://127.0.0.1:5500"
   // For GitHub Pages: "https://yourusername.github.io/your-repo-name/"
-  REDIRECT_URI: "https://varunkrishnan1.github.io/SpotifyWeb-Connect/",
+  REDIRECT_URI: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? `${window.location.protocol}//${window.location.host}` 
+    : "https://varunkrishnan1.github.io/SpotifyWeb-Connect/",
   
   // Spotify API scopes needed for the application
   SCOPES: "user-read-currently-playing user-read-playback-state user-read-recently-played",
