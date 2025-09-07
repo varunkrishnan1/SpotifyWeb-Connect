@@ -3,24 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spotify Now Playing</title>
+  <title>Spotify Now Playing Widget</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-dark text-light d-flex justify-content-center align-items-center vh-100">
-
-  <div class="card bg-black text-center p-3 shadow-lg" style="width: 22rem;">
-    <h6 class="text-success">Now Playing on Spotify</h6>
-    <img id="album-cover" class="rounded my-2" src="" alt="Album Cover" width="100%" />
-    <h5 id="song-title" class="mt-2"></h5>
-    <p id="artist-name" class="text-muted"></p>
-    
-    <div class="progress mb-2">
-      <div id="progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+  <main class="container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="card bg-black text-center p-4 shadow-lg widget-card">
+      <div class="spinner-border text-success mb-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <h6 class="text-success">Connecting to Spotify...</h6>
+      <p class="text-muted small">Please wait while we authenticate your account</p>
     </div>
-    <small id="time-elapsed">0:00</small> / <small id="time-duration">0:00</small>
-  </div>
 
+    <!-- Login Screen -->
+    <div id="login-screen" class="card bg-black text-center p-4 shadow-lg widget-card" style="display: none;">
+      <div class="mb-3">
+        <i class="fab fa-spotify text-success" style="font-size: 3rem;"></i>
+      </div>
+      <h6 class="text-success mb-3">Connect to Spotify</h6>
+      <p class="text-muted small mb-3">Login to view your currently playing track</p>
+      <button id="login-btn" class="btn btn-success btn-lg">
+        <i class="fab fa-spotify me-2"></i>Login with Spotify
+      </button>
+    </div>
+
+    <!-- Main Widget -->
+    <article id="main-widget" class="card bg-black text-center p-4 shadow-lg widget-card" style="display: none;">
+      <!-- Header -->
+      <header class="mb-3">
+        <h6 class="text-success mb-1">
+          <i class="fas fa-music me-2"></i>Now Playing on Spotify
+        </h6>
+        <div id="playback-status" class="text-muted small">
+          <i id="play-icon" class="fas fa-play me-1"></i>
+          <span id="status-text">Playing</span>
+        </div>
+      </header>
+
+      <!-- Album Cover -->
+      <div class="album-container mb-3">
+        <img id="album-cover" class="album-cover" src="https://via.placeholder.com/300x300/1DB954/FFFFFF?text=No+Track" alt="Album Cover" />
+        <div id="album-overlay" class="album-overlay">
+          <i class="fas fa-music"></i>
+        </div>
+      </div>
+
+      <!-- Track Info -->
+      <section class="track-info mb-3">
+        <h5 id="song-title" class="song-title mb-1">No track playing</h5>
+        <p id="artist-name" class="artist-name text-muted mb-0">Unknown Artist</p>
+        <p id="album-name" class="album-name text-muted small mb-0">Unknown Album</p>
+      </section>
+      
+      <!-- Progress Section -->
+      <section class="progress-section">
+        <div class="progress mb-2 custom-progress">
+          <div id="progress-bar" class="progress-bar bg-success progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="time-info d-flex justify-content-between">
+          <small id="time-elapsed" class="text-muted">0:00</small>
+          <small id="time-duration" class="text-muted">0:00</small>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <footer class="mt-3">
+        <button id="refresh-btn" class="btn btn-outline-success btn-sm">
+          <i class="fas fa-refresh me-1"></i>Refresh
+        </button>
+      </footer>
+    </article>
+
+    <!-- Error Screen -->
+    <div id="error-screen" class="card bg-black text-center p-4 shadow-lg widget-card" style="display: none;">
+      <div class="mb-3">
+        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+      </div>
+      <h6 class="text-warning mb-2">Connection Error</h6>
+      <p id="error-message" class="text-muted small mb-3">Failed to connect to Spotify</p>
+      <button id="retry-btn" class="btn btn-warning btn-sm">
+        <i class="fas fa-redo me-1"></i>Try Again
+      </button>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
